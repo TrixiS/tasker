@@ -28,7 +28,7 @@ export const TaskItem: React.FC<TaskProps & { task: Task }> = ({
       exit={{ opacity: 0 }}
       className="flex flex-row bg-zinc-800 w-full rounded-lg p-4 border border-zinc-700 items-center"
     >
-      <CompeleTaskButton index={index} completed={task.completed} />
+      <CompleteTaskButton index={index} completed={task.completed} />
       <input
         className="bg-transparent focus:outline-none text-zinc-400 focus:text-zinc-300 w-full ml-2"
         value={task.text}
@@ -108,10 +108,9 @@ const RemoveTaskButton: React.FC<{ index: number }> = ({ index }) => {
   );
 };
 
-const CompeleTaskButton: React.FC<TaskProps & Pick<Task, "completed">> = ({
-  index,
-  completed,
-}) => {
+export const CompleteTaskButton: React.FC<
+  TaskProps & Pick<Task, "completed">
+> = ({ index, completed }) => {
   const { setTask } = useTaskStore();
 
   const handleOnClick = () => {
