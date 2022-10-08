@@ -5,6 +5,7 @@ import { persist } from "zustand/middleware";
 
 type Task = {
   text: string;
+  completed: boolean;
 };
 
 type TaskProps = {
@@ -14,8 +15,15 @@ type TaskProps = {
 type TaskStore = {
   tasks: Task[];
   addTask: (task: Task) => void;
-  setTask: (index: number, newTask: Task) => void;
+  setTask: (index: number, newTask: Partial<Task>) => void;
   removeTask: (index: number) => void;
+};
+
+const createNewTask = (): Task => {
+  return {
+    text: "",
+    completed: false,
+  };
 };
 
 const useTaskStore = createStore<TaskStore>()(
@@ -27,7 +35,7 @@ const useTaskStore = createStore<TaskStore>()(
       },
       setTask(index, newTask) {
         const tasks = get().tasks;
-        tasks[index] = newTask;
+        Object.assign(tasks[index], newTask);
         set(() => ({ tasks }));
       },
       removeTask(index) {
@@ -42,13 +50,22 @@ const useTaskStore = createStore<TaskStore>()(
   )
 );
 
-const Task: React.FC<
-  Pick<ComponentPropsWithoutRef<"input">, "value" | "onChange"> & TaskProps
-> = ({ index, ...props }) => {
+const Task: React.FC<TaskProps & { task: Task }> = ({
+  index,
+  task,
+  ...props
+}) => {
+  const { setTask } = useTaskStore();
+
   return (
-    <li className="flex flex-row bg-zinc-800 w-full rounded-lg p-4 border border-zinc-700">
+    <li className="flex flex-row bg-zinc-800 w-full rounded-lg p-4 border border-zinc-700 items-center">
+      <CompeleTaskButton index={index} completed={task.completed} />
       <input
-        className="bg-transparent focus:outline-none text-zinc-400 focus:text-zinc-300 w-full"
+        className="bg-transparent focus:outline-none text-zinc-400 focus:text-zinc-300 w-full ml-2"
+        value={task.text}
+        onChange={(e) => {
+          setTask(index, { text: e.target.value });
+        }}
         {...props}
       />
       <RemoveTaskButton index={index} />
@@ -63,9 +80,8 @@ const TaskList: React.FC<PropsWithChildren> = ({ children }) => {
 const AddTaskButton: React.FC = () => {
   const { tasks, addTask } = useTaskStore();
 
-  // TODO: const createNewTask
   const handleOnClick = () => {
-    addTask({ text: "" });
+    addTask(createNewTask());
   };
 
   const checkCreatingTask = () => {
@@ -127,8 +143,45 @@ const RemoveTaskButton: React.FC<{ index: number }> = ({ index }) => {
   );
 };
 
+const CompeleTaskButton: React.FC<TaskProps & Pick<Task, "completed">> = ({
+  index,
+  completed,
+}) => {
+  const { setTask } = useTaskStore();
+
+  const handleOnClick = () => {
+    setTask(index, { completed: !completed });
+  };
+
+  return (
+    <button
+      onClick={handleOnClick}
+      className={`${
+        completed
+          ? "text-green-500 border-r"
+          : "text-zinc-500 hover:text-zinc-300 border-r"
+      } border-zinc-700 pr-1`}
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+        className="w-6 h-6"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M4.5 12.75l6 6 9-13.5"
+        />
+      </svg>
+    </button>
+  );
+};
+
 function App() {
-  const { tasks, setTask } = useTaskStore();
+  const { tasks } = useTaskStore();
 
   return (
     <div className="container">
@@ -140,14 +193,7 @@ function App() {
       </div>
       <TaskList>
         {tasks.map((task, index) => (
-          <Task
-            index={index}
-            key={index.toString()}
-            value={task.text}
-            onChange={(e) => {
-              setTask(index, { text: e.target.value });
-            }}
-          />
+          <Task index={index} task={task} key={index.toString()} />
         ))}
       </TaskList>
     </div>
