@@ -1,7 +1,8 @@
-import { ComponentPropsWithoutRef, PropsWithChildren, useState } from "react";
+import { PropsWithChildren } from "react";
 import "./App.css";
 import createStore from "zustand";
 import { persist } from "zustand/middleware";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Task = {
   text: string;
@@ -58,7 +59,13 @@ const Task: React.FC<TaskProps & { task: Task }> = ({
   const { setTask } = useTaskStore();
 
   return (
-    <li className="flex flex-row bg-zinc-800 w-full rounded-lg p-4 border border-zinc-700 items-center">
+    <motion.li
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      exit={{ opacity: 0 }}
+      className="flex flex-row bg-zinc-800 w-full rounded-lg p-4 border border-zinc-700 items-center"
+    >
       <CompeleTaskButton index={index} completed={task.completed} />
       <input
         className="bg-transparent focus:outline-none text-zinc-400 focus:text-zinc-300 w-full ml-2"
@@ -69,12 +76,16 @@ const Task: React.FC<TaskProps & { task: Task }> = ({
         {...props}
       />
       <RemoveTaskButton index={index} />
-    </li>
+    </motion.li>
   );
 };
 
 const TaskList: React.FC<PropsWithChildren> = ({ children }) => {
-  return <ul className="flex flex-col w-full gap-1">{children}</ul>;
+  return (
+    <ul className="flex flex-col w-full gap-1">
+      <AnimatePresence>{children}</AnimatePresence>
+    </ul>
+  );
 };
 
 const AddTaskButton: React.FC = () => {
@@ -90,7 +101,7 @@ const AddTaskButton: React.FC = () => {
 
   return (
     <button
-      className="flex flex-row items-center gap-1 text-lg font-bold text-zinc-200 bg-green-600 hover:bg-green-700 py-2 px-8 rounded-lg"
+      className="flex flex-row items-center gap-1 text-lg font-bold text-zinc-200 bg-green-600 hover:bg-green-700 py-2 px-8 rounded-lg disabled:bg-green-800 disabled:text-zinc-400"
       onClick={handleOnClick}
       disabled={checkCreatingTask()}
     >
@@ -123,7 +134,7 @@ const RemoveTaskButton: React.FC<{ index: number }> = ({ index }) => {
   return (
     <button
       onClick={handleOnClick}
-      className="text-zinc-500 hover:text-red-500"
+      className="text-zinc-500 hover:text-red-500 ml-1"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -160,7 +171,7 @@ const CompeleTaskButton: React.FC<TaskProps & Pick<Task, "completed">> = ({
         completed
           ? "text-green-500 border-r"
           : "text-zinc-500 hover:text-zinc-300 border-r"
-      } border-zinc-700 pr-1`}
+      } border-zinc-700 pr-2`}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -185,7 +196,7 @@ function App() {
 
   return (
     <div className="container">
-      <h1 className="text-zinc-200 font-extrabold leading-tight text-6xl">
+      <h1 className="text-zinc-200 font-extrabold leading-tight text-6xl gradient">
         Tasker
       </h1>
       <div className="flex flex-row mb-2 items-start w-full">
